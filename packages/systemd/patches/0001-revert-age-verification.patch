@@ -133,53 +133,35 @@ diff --git a/src/home/homectl.c b/src/home/homectl.c
 index 507860c..a8ebf85 100644
 --- a/src/home/homectl.c
 +++ b/src/home/homectl.c
-@@ -3945,7 +3945,6 @@ static int help(void) {
-                "     --alias=ALIAS             Define alias usernames for this account\n"
-                "     --email-address=EMAIL     Email address for user\n"
-                "     --location=LOCATION       Set location of user on earth\n"
--               "     --birth-date=[DATE]       Set user birth date (YYYY-MM-DD)\n"
-                "     --icon-name=NAME          Icon name for user\n"
-                "  -d --home-dir=PATH           Home directory\n"
-                "  -u --uid=UID                 Numeric UID for user\n"
-@@ -4114,7 +4113,6 @@ static int parse_argv(int argc, char *argv[]) {
-                 ARG_LOCKED,
-                 ARG_SSH_AUTHORIZED_KEYS,
-                 ARG_LOCATION,
--                ARG_BIRTH_DATE,
-                 ARG_ICON_NAME,
-                 ARG_PASSWORD_HINT,
-                 ARG_NICE,
-@@ -4201,7 +4199,6 @@ static int parse_argv(int argc, char *argv[]) {
-                 { "alias",                        required_argument, NULL, ARG_ALIAS                       },
-                 { "email-address",                required_argument, NULL, ARG_EMAIL_ADDRESS               },
-                 { "location",                     required_argument, NULL, ARG_LOCATION                    },
--                { "birth-date",                   required_argument, NULL, ARG_BIRTH_DATE                  },
-                 { "password-hint",                required_argument, NULL, ARG_PASSWORD_HINT               },
-                 { "icon-name",                    required_argument, NULL, ARG_ICON_NAME                   },
-                 { "home-dir",                     required_argument, NULL, 'd'                             }, /* Compatible with useradd(8) */
-@@ -4415,22 +4412,6 @@ static int parse_argv(int argc, char *argv[]) {
+@@ -4246,28 +4246,12 @@ static int parse_argv(int argc, char *argv[], char ***remaining_args) {
+                 OPTION_LONG("location", "LOCATION", "Set location of user on earth"):
+                         r = parse_string_field(match_identity ?: &arg_identity_extra, "location", opts.arg);
+                         if (r < 0)
+                                 return r;
                          break;
-                 }
-
--                case ARG_BIRTH_DATE:
--                        if (isempty(optarg)) {
+ 
+-                OPTION_LONG_FLAGS(OPTION_OPTIONAL_ARG, "birth-date", "DATE",
+-                                  "Set user birth date (YYYY-MM-DD)"):
+-                        if (isempty(opts.arg)) {
 -                                r = drop_from_identity("birthDate");
 -                                if (r < 0)
 -                                        return r;
 -                        } else {
--                                r = parse_birth_date(optarg, /* ret= */ NULL);
+-                                r = parse_birth_date(opts.arg, /* ret= */ NULL);
 -                                if (r < 0)
--                                        return log_error_errno(r, "Invalid birth date (expected YYYY-MM-DD): %s", optarg);
+-                                        return log_error_errno(r, "Invalid birth date (expected YYYY-MM-DD): %s", opts.arg);
 -
--                                r = parse_string_field(&arg_identity_extra, "birthDate", optarg);
+-                                r = parse_string_field(&arg_identity_extra, "birthDate", opts.arg);
 -                                if (r < 0)
 -                                        return r;
 -                        }
 -                        break;
--
-                 case ARG_CIFS_SERVICE:
-                         if (!isempty(optarg)) {
-                                 r = parse_cifs_service(optarg, /* ret_host= */ NULL, /* ret_service= */ NULL, /* ret_path= */ NULL);
+ 
+                 OPTION_LONG("icon-name", "NAME", "Icon name for user"):
+                         r = parse_string_field(match_identity ?: &arg_identity_extra, "iconName", opts.arg);
+                         if (r < 0)
+                                 return r;
+                         break;
 diff --git a/src/shared/user-record-show.c b/src/shared/user-record-show.c
 index 11edf25..a43328c 100644
 --- a/src/shared/user-record-show.c
